@@ -92,59 +92,98 @@
               <label>Don't fill this out if you're human: <input name="bot-field"/></label>
             </p>
             <div class="form-row">
-              <div class="form-group">
-                <label for="firstName">First Name *</label>
-                <input type="text" id="firstName" name="firstName" placeholder="Your first name" required/>
-              </div>
-              <div class="form-group">
-                <label for="lastName">Last Name *</label>
-                <input type="text" id="lastName" name="lastName" placeholder="Your last name" required/>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="email">Email Address *</label>
-              <input type="email" id="email" name="email" placeholder="you@company.com" required/>
-            </div>
-            <div class="form-group">
-              <label for="company">Company / Organisation</label>
-              <input type="text" id="company" name="company" placeholder="Your company name"/>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="age">Age *</label>
-                <input type="number" id="age" name="age" placeholder="Your age" min="16" max="100" required/>
-              </div>
-              <div class="form-group">
-                <label for="gender">Gender *</label>
-                <select id="gender" name="gender" required>
-                  <option value="">Select</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                  <option value="prefer-not-to-say">Prefer not to say</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="subject">I'm enquiring about</label>
-              <select id="subject" name="subject">
-                <option value="">Select a topic</option>
-                <option value="apply-for-role">Apply for a role</option>
-                <option value="dark-store">Dark store operations</option>
-                <option value="last-mile">Last Mile Under the roof and on the road operations</option>
-                <option value="middle-mile">Middle Mile Under the roof operations</option>
-                <option value="long-haul">Long haul and Milk run trucking</option>
-                <option value="general">General Enquiry</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="message">Message *</label>
-              <textarea id="message" name="message" placeholder="Tell us about your requirements or how we can help..." required></textarea>
-            </div>
-            <div class="form-group" id="resumeGroup" style="display:none;">
-              <label for="resume">Attach Resume / Document</label>
-              <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx"/>
-            </div>
+  <div class="form-group">
+    <label for="firstName">First Name *</label>
+    <input type="text" id="firstName" name="firstName" required>
+  </div>
+
+  <div class="form-group">
+    <label for="lastName">Last Name *</label>
+    <input type="text" id="lastName" name="lastName" required>
+  </div>
+</div>
+
+<div class="form-group">
+  <label for="email">Email Address *</label>
+  <input type="email" id="email" name="email" required>
+</div>
+
+<div class="form-group">
+  <label for="phone">Contact Number *</label>
+  <input
+    type="tel"
+    id="phone"
+    name="phone"
+    placeholder="+91 98765 43210"
+    required
+  >
+</div>
+
+<div class="form-group">
+  <label for="subject">I'm enquiring about *</label>
+  <select id="subject" name="subject" required>
+    <option value="">Select a topic</option>
+    <option value="apply-for-role">Apply for a role</option>
+    <option value="dark-store">Dark Store Operations</option>
+    <option value="last-mile">Last Mile Operations</option>
+    <option value="middle-mile">Middle Mile Operations</option>
+    <option value="long-haul">Long Haul & Milk Run Trucking</option>
+    <option value="general">General Enquiry</option>
+  </select>
+</div>
+
+<div class="form-group" id="companyGroup" style="display:none;">
+  <label for="company">Company / Organisation *</label>
+  <input
+    type="text"
+    id="company"
+    name="company"
+    placeholder="Company name"
+  >
+</div>
+
+<div class="form-row" id="candidateFields" style="display:none;">
+  <div class="form-group">
+    <label for="age">Age *</label>
+    <input
+      type="number"
+      id="age"
+      name="age"
+      min="16"
+      max="100"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="gender">Gender *</label>
+    <select id="gender" name="gender">
+      <option value="">Select</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+      <option value="prefer-not-to-say">Prefer not to say</option>
+    </select>
+  </div>
+</div>
+
+<div class="form-group" id="resumeGroup" style="display:none;">
+  <label for="resume">Attach Resume *</label>
+  <input
+    type="file"
+    id="resume"
+    name="resume"
+    accept=".pdf,.doc,.docx"
+  >
+</div>
+
+<div class="form-group" id="messageGroup">
+  <label for="message">Message *</label>
+  <textarea
+    id="message"
+    name="message"
+    placeholder="Tell us about your requirements..."
+  ></textarea>
+</div>
             <button type="submit" class="btn btn-primary form-submit">Send Message ↗</button>
           </form>
           <div class="success-msg" id="successMsg">
@@ -191,36 +230,73 @@
   <script src="js/main.js"></script>
   <script>
     const subjectSelect = document.getElementById('subject');
-    const resumeGroup = document.getElementById('resumeGroup');
-    const resumeInput = document.getElementById('resume');
 
-    subjectSelect.addEventListener('change', function() {
-      if (this.value === 'apply-for-role') {
-        resumeGroup.style.display = 'block';
-      } else {
-        resumeGroup.style.display = 'none';
-        resumeInput.value = '';
-      }
-    });
+const companyGroup = document.getElementById('companyGroup');
+const companyInput = document.getElementById('company');
 
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const form = this;
-      const data = new FormData(form);
+const candidateFields = document.getElementById('candidateFields');
+const ageInput = document.getElementById('age');
+const genderInput = document.getElementById('gender');
 
-      fetch('/', {
-        method: 'POST',
-        body: data
-      })
-        .then(() => {
-          document.getElementById('successMsg').style.display = 'block';
-          form.reset();
-          form.style.display = 'none';
-        })
-        .catch(() => {
-          alert('Something went wrong sending your message. Please try again or email us directly.');
-        });
-    });
+const resumeGroup = document.getElementById('resumeGroup');
+const resumeInput = document.getElementById('resume');
+
+const messageInput = document.getElementById('message');
+
+subjectSelect.addEventListener('change', function () {
+
+  const isJobApplication =
+    this.value === 'apply-for-role';
+
+  if (isJobApplication) {
+
+    companyGroup.style.display = 'none';
+    companyInput.required = false;
+    companyInput.value = '';
+
+    candidateFields.style.display = 'flex';
+    resumeGroup.style.display = 'block';
+
+    ageInput.required = true;
+    genderInput.required = true;
+    resumeInput.required = true;
+
+    messageInput.required = false;
+    messageInput.placeholder =
+      'Additional information about your application (optional)';
+
+  } else if (this.value !== '') {
+
+    companyGroup.style.display = 'block';
+    companyInput.required = true;
+
+    candidateFields.style.display = 'none';
+    resumeGroup.style.display = 'none';
+
+    ageInput.required = false;
+    genderInput.required = false;
+    resumeInput.required = false;
+
+    ageInput.value = '';
+    genderInput.value = '';
+    resumeInput.value = '';
+
+    messageInput.required = true;
+    messageInput.placeholder =
+      'Tell us about your requirements or how we can help...';
+
+  } else {
+
+    companyGroup.style.display = 'none';
+    candidateFields.style.display = 'none';
+    resumeGroup.style.display = 'none';
+
+    companyInput.required = false;
+    ageInput.required = false;
+    genderInput.required = false;
+    resumeInput.required = false;
+  }
+});
   </script>
 </body>
 </html>
