@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us — Atlara</title>
+  <meta name="description" content="Learn about Atlara — our vision, values, and the team behind India's e-commerce logistics partner."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg"/>
+  <style>
+    /* Values grid — 5 card layout (3 top, 2 centered below) */
+    .values-section { background:var(--white); }
+    .values-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:22px; margin-top:64px; }
+    .value-detail-card {
+      grid-column: span 2;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius-lg); overflow:hidden;
+      transition:var(--transition); box-shadow:var(--shadow-sm);
+      position:relative;
+    }
+    .value-detail-card:nth-child(4) { grid-column: 2 / 4; }
+    .value-detail-card:nth-child(5) { grid-column: 4 / 6; }
+    .value-detail-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg, var(--ocean-teal), var(--accent));
+      transform:scaleX(0); transform-origin:left; transition:transform var(--transition);
+    }
+    .value-detail-card:hover::before { transform:scaleX(1); }
+    .value-detail-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:rgba(13,159,189,0.3); }
+    .value-detail-card__img { height:190px; overflow:hidden; position:relative; }
+    .value-detail-card__img img { width:100%; height:100%; object-fit:cover; transition:transform 0.7s ease; }
+    .value-detail-card:hover .value-detail-card__img img { transform:scale(1.06); }
+    .value-detail-card__img::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(to bottom, transparent 40%, rgba(6,24,34,0.3) 100%);
+    }
+    .value-detail-card__body { padding:26px 28px; }
+    .value-detail-card__body h4 { color:var(--ocean-deep); margin-bottom:10px; font-size:1.1rem; }
+    .value-detail-card__body p  { font-size:0.9rem; line-height:1.68; }
+    @media(max-width:768px){
+      .values-grid{ grid-template-columns:1fr; }
+      .value-detail-card,
+      .value-detail-card:nth-child(4),
+      .value-detail-card:nth-child(5) { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar light">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo"><img src="assets/logo.jpg" alt="Atlara Hyperlogistics"/></a>
+      <ul class="navbar__links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html" class="active">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="careers.html">Careers</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="contact.html" class="btn btn-primary navbar__cta">Get in Touch</a>
+      <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="mobile-menu">
+    <a href="index.html">Home</a><a href="about.html">About</a>
+    <a href="services.html">Services</a><a href="careers.html">Careers</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <section class="page-hero">
+    <div class="page-hero__bg">
+      <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1800&q=85&fit=crop" alt="Warehouse operations"/>
+    </div>
+    <div class="container">
+      <div class="tag">About Atlara</div>
+      <h1>Who are we</h1>
+      <p>An e-commerce focused logistics partner built on speed, and a relentless commitment to operational excellence across India.</p>
+    </div>
+  </section>
+
+  <section class="about-strip">
+    <div class="container">
+      <div class="about-strip__inner">
+        <div class="reveal">
+          <div class="tag">Who are we</div>
+          <h2>Built for the speed of now</h2>
+          <div class="divider"></div>
+          <p style="font-size:1.05rem; line-height:1.85; color:rgba(255,255,255,0.6); margin-bottom:24px;">
+            Atlara is an e-commerce logistics partner enabling scalable dark store network and efficient last-mile and middle-mile delivery. With a strong focus on speed, reliability, efficiency, and driven by customer obsession, we power seamless operations to deliver consistent, dependable results.
+          </p>
+          <a href="about.html" class="btn btn-outline" style="border-color:rgba(255,255,255,0.25);color:#fff;">Learn About Us</a>
+        </div>
+        <div class="value-grid reveal reveal-delay-2">
+          <div class="value-img-card">
+            <img src="https://i.pinimg.com/736x/5f/67/4a/5f674a191cbe7172e76544f292957350.jpg" alt="Speed" loading="lazy"/>
+            <div class="value-img-card__overlay"></div>
+            <div class="value-img-card__body"><h4>Speed</h4><p>Every operation optimised for pace</p></div>
+          </div>
+          <div class="value-img-card">
+            <img src="https://i.pinimg.com/736x/08/0e/11/080e11c5faee5af676ed113380d2351f.jpg" alt="Reliability" loading="lazy"/>
+            <div class="value-img-card__overlay"></div>
+            <div class="value-img-card__body"><h4>Reliable</h4><p>Consistent results you can trust</p></div>
+          </div>
+          <div class="value-img-card">
+            <img src="https://i.pinimg.com/736x/c7/69/8c/c7698c788ac6152dbe17f064b2779f8e.jpg" alt="Efficiency" loading="lazy"/>
+            <div class="value-img-card__overlay"></div>
+            <div class="value-img-card__body"><h4>Efficient</h4><p>Lean operations built to scale</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section why why-strip" style="background:var(--off-white);">
+    <div class="container">
+      <div class="why__inner">
+        <div class="why__left reveal">
+          <div class="tag">Our Story</div>
+          <h2>What we do and why it matters</h2>
+          <div class="divider" style="background:linear-gradient(90deg,var(--ocean-teal),var(--accent));"></div>
+          <p>e-commerce moves fast — and the operations behind it need to move faster. Atlara was built to fill that gap with precision, people, and technology.</p>
+        </div>
+        <div class="why__list">
+          <div class="why-item glow-border reveal reveal-delay-1">
+            <div class="why-item__thumb img-shine">
+              <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=200&q=85&fit=crop" alt="Dark Store" loading="lazy"/>
+            </div>
+            <div class="why-item__body">
+              <h4>Dark Store Network</h4>
+              <p>Scalable dark store network — the micro-fulfilment backbone of every e-commerce platform — with the operational rigour to run them at their best.</p>
+            </div>
+          </div>
+          <div class="why-item glow-border reveal reveal-delay-2">
+            <div class="why-item__thumb img-shine">
+              <img src="https://i.pinimg.com/736x/89/8c/53/898c53df0d86ce92ef4131e3ed190f51.jpg" alt="Last Mile" loading="lazy"/>
+            </div>
+            <div class="why-item__body">
+              <h4>Middle &amp; Last-Mile Delivery</h4>
+              <p>Built for efficiency and consistency — ensuring every order reaches the right customer at the right time, every single time.</p>
+            </div>
+          </div>
+          <div class="why-item glow-border reveal reveal-delay-3">
+            <div class="why-item__thumb img-shine">
+              <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=200&q=85&fit=crop" alt="Customer Obsession" loading="lazy"/>
+            </div>
+            <div class="why-item__body">
+              <h4>Customer Obsession</h4>
+              <p>Everything we build is driven by our obsession with creating the best possible experience for our clients and their customers.</p>
+            </div>
+          </div>
+          <div class="why-item glow-border reveal reveal-delay-4">
+            <div class="why-item__thumb img-shine">
+              <img src="https://i.pinimg.com/736x/30/ed/25/30ed25bab82eb36fa26ccdfcfa7a6e04.jpg" alt="Technology" loading="lazy"/>
+            </div>
+            <div class="why-item__body">
+              <h4>People &amp; Technology</h4>
+              <p>Great operations are built on great people, supported by smart technology. This philosophy runs through everything we do.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section values-section">
+    <div class="container">
+      <div style="text-align:center; max-width:580px; margin:0 auto;" class="reveal">
+        <div class="section-label">Core Principles</div>
+        <div class="tag" style="margin:0 auto 20px;">Our Values</div>
+        <h2 style="color:var(--ocean-deep);">What guides us every day</h2>
+        <p style="margin-top:14px;">Every decision, every hire, every process — anchored in these principles.</p>
+      </div>
+      <div class="values-grid">
+        <div class="value-detail-card reveal reveal-delay-1">
+          <div class="value-detail-card__img">
+            <img src="https://i.pinimg.com/736x/89/8c/53/898c53df0d86ce92ef4131e3ed190f51.jpg" alt="Speed" loading="lazy"/>
+          </div>
+          <div class="value-detail-card__body">
+            <h4>Speed</h4>
+            <p>e-commerce demands quick thinking. We are built for pace at every level of the organisation — from decision-making to on-the-ground execution.</p>
+          </div>
+        </div>
+        <div class="value-detail-card reveal reveal-delay-2">
+          <div class="value-detail-card__img">
+            <img src="https://i.pinimg.com/736x/08/0e/11/080e11c5faee5af676ed113380d2351f.jpg" alt="Reliability" loading="lazy"/>
+          </div>
+          <div class="value-detail-card__body">
+            <h4>Reliability</h4>
+            <p>Consistent, dependable results our partners can count on — every order, every shift, every time.</p>
+          </div>
+        </div>
+        <div class="value-detail-card reveal reveal-delay-3">
+          <div class="value-detail-card__img">
+            <img src="https://i.pinimg.com/736x/04/7d/a4/047da4124bfdfc0fb98d8b51164f86e0.jpg" alt="Efficiency" loading="lazy"/>
+          </div>
+          <div class="value-detail-card__body">
+            <h4>Efficiency</h4>
+            <p>Lean, optimised operations built to scale — minimising waste while maximising throughput.</p>
+          </div>
+        </div>
+        <div class="value-detail-card reveal reveal-delay-4">
+          <div class="value-detail-card__img">
+            <img src="https://i.pinimg.com/736x/ac/62/86/ac62860286b46cc792841c0348dc25f9.jpg" alt="Customer Obsession" loading="lazy"/>
+          </div>
+          <div class="value-detail-card__body">
+            <h4>Customer Obsession</h4>
+            <p>Everything we build is driven by our obsession with creating the best possible experience for our clients and their customers.</p>
+          </div>
+        </div>
+        <div class="value-detail-card reveal reveal-delay-5">
+          <div class="value-detail-card__img">
+            <img src="https://i.pinimg.com/1200x/06/ea/da/06eadaaa4ffcccbe058a310ff90c9dc5.jpg" alt="People and Technology Driven Leadership" loading="lazy"/>
+          </div>
+          <div class="value-detail-card__body">
+            <h4>People &amp; Technology Driven Leadership</h4>
+            <p>Great operations are built on great people, supported by smart technology — a philosophy that runs through every decision we make.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section founders" style="background:var(--off-white);">
+    <div class="container">
+      <div class="founders__header reveal">
+        <div class="tag">The Founding Team</div>
+        <h2>Operators who've lived it</h2>
+        <p style="margin-top:18px;">Our founders bring a combined experience of 20+ years in logistics and over 10 years in FMCG — with deep expertise in operations management and a track record of delivering at scale.</p>
+      </div>
+      <div class="founders__card reveal" style="margin-bottom:20px;">
+        <div class="founders__avatars">
+          <div class="founder-avatar">A</div>
+          <div class="founder-avatar">R</div>
+          <div class="founder-avatar">M</div>
+        </div>
+        <p>"We bring deep expertise in operations management along with diverse strengths that collectively add depth and resilience to the organisation. Our varied backgrounds help us build a strong, well-rounded foundation for scalable and high-performance operations. We are people-focused leaders committed to operational excellence, with a strong emphasis on quality, efficiency, and empowering our teams to deliver consistent results."</p>
+        <div class="founders__meta">The Atlara Founding Team</div>
+        <div class="founders__exp">
+          <div class="exp-item">
+            <div class="exp-item__num"><span data-target="20" data-suffix="+">0+</span></div>
+            <div class="exp-item__label">Years in Logistics</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-item__num"><span data-target="10" data-suffix="+">0+</span></div>
+            <div class="exp-item__label">Years in FMCG</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <img src="assets\logo.jpg" alt="Atlara Hyperlogistics"/>
+          <p>E-commerce-focused logistics partner enabling scalable dark store network and efficient middle-mile and last-mile delivery across India.</p>
+        </div>
+        <div class="footer__col">
+          <h5>Navigation</h5>
+          <ul>
+            <li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li>
+            <li><a href="services.html">Services</a></li><li><a href="careers.html">Careers</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h5>Services</h5>
+          <ul>
+            <li><a href="services.html">Dark store operations</a></li>
+            <li><a href="services.html">Last Mile UTR & OTR Operations</a></li>
+            <li><a href="services.html">Middle Mile UTR & OTR Operations</a></li>
+            <li><a href="services.html">Long Haul & Milk Run Trucking</a></li>
+          </ul>
+          <h5 style="margin-top:32px;">Contact</h5>
+          <ul><li><a href="mailto:admin@atlarahyperlogistics.com">admin@atlarahyperlogistics.com</a></li></ul>
+        </div>
+      </div>
+      <div class="footer__divider"></div>
+      
+    </div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>
