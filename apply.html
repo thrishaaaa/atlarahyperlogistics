@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apply — Atlara</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg"/>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="index.html" class="navbar__logo"><img src="assets/logo.jpg" alt="Atlara Hyperlogistics"/></a>
+      <ul class="navbar__links"><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="services.html">Services</a></li><li><a href="careers.html">Careers</a></li><li><a href="contact.html">Contact</a></li></ul>
+      <a href="contact.html" class="btn btn-primary navbar__cta">Get in Touch</a>
+      <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="mobile-menu"><a href="index.html">Home</a><a href="about.html">About</a><a href="services.html">Services</a><a href="careers.html">Careers</a><a href="contact.html">Contact</a></div>
+
+  <main class="application-page section">
+    <div class="container">
+      <a class="back-link" href="careers.html">← Back to careers</a>
+      <div id="applicationLoading" class="jobs-loading">Loading role details…</div>
+      <div id="applicationContent" class="application-grid" hidden>
+        <section class="application-role reveal visible">
+          <div class="tag">Application</div>
+          <h1 id="jobTitle"></h1>
+          <div id="jobMeta" class="application-role__meta"></div>
+          <div class="application-role__content"><h2>About the role</h2><p id="jobDescription"></p><div id="requirementsBlock" hidden><h2>What we're looking for</h2><div id="jobRequirements"></div></div></div>
+        </section>
+
+        <section class="contact-form application-form reveal visible">
+          <h2>Apply for this role</h2>
+          <p>Complete the form below and attach your current resume.</p>
+          <form name="job-application" method="POST" action="application-received.html" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data">
+            <input type="hidden" name="form-name" value="job-application"/>
+            <p class="visually-hidden"><label>Do not fill this out: <input name="bot-field"/></label></p>
+            <input id="applicationJobId" type="hidden" name="job_id"/>
+            <input id="applicationJobTitle" type="hidden" name="job_title"/>
+            <div class="form-row">
+              <div class="form-group"><label for="firstName">First name *</label><input id="firstName" name="first_name" type="text" autocomplete="given-name" required/></div>
+              <div class="form-group"><label for="lastName">Last name *</label><input id="lastName" name="last_name" type="text" autocomplete="family-name" required/></div>
+            </div>
+            <div class="form-group"><label for="email">Email address *</label><input id="email" name="email" type="email" autocomplete="email" required/></div>
+            <div class="form-group"><label for="phone">Phone number *</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" required/></div>
+            <div class="form-row">
+              <div class="form-group"><label for="age">Age *</label><input id="age" name="age" type="number" min="16" max="100" required/></div>
+              <div class="form-group"><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option><option value="prefer-not-to-say">Prefer not to say</option></select></div>
+            </div>
+            <div class="form-group"><label for="resume">Resume (PDF, DOC or DOCX) *</label><input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required/></div>
+            <div class="form-group"><label for="message">Additional note</label><textarea id="message" name="message" placeholder="Tell us briefly why you would be a great fit (optional)"></textarea></div>
+            <button id="submitApplication" class="btn btn-primary form-submit" type="submit" disabled>Submit application ↗</button>
+          </form>
+        </section>
+      </div>
+      <section id="jobUnavailable" class="coming-soon-card" hidden>
+        <div class="coming-soon-badge">Role unavailable</div>
+        <h1 style="color:var(--ocean-deep); margin-bottom:18px;">This role is no longer open</h1>
+        <p style="font-size:1.05rem; line-height:1.85; margin-bottom:36px;">The job may have been closed or the link may be incorrect. Please view our current openings instead.</p>
+        <a href="careers.html" class="btn btn-primary">View current openings ↗</a>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const loading = document.getElementById('applicationLoading');
+    const content = document.getElementById('applicationContent');
+    const unavailable = document.getElementById('jobUnavailable');
+
+    function setText(id, value) { document.getElementById(id).textContent = value || ''; }
+    function showUnavailable() { loading.hidden = true; unavailable.hidden = false; }
+
+    async function loadApplication() {
+      const jobId = new URLSearchParams(window.location.search).get('job');
+      if (!jobId) { showUnavailable(); return; }
+
+      const { data: job, error } = await window.sb
+        .from('jobs')
+        .select('id, title, department, location, type, description, requirements')
+        .eq('id', jobId)
+        .eq('status', 'open')
+        .maybeSingle();
+
+      if (error || !job) { showUnavailable(); return; }
+      document.title = 'Apply for ' + job.title + ' — Atlara';
+      setText('jobTitle', job.title);
+      setText('jobDescription', job.description);
+      document.getElementById('jobMeta').innerHTML = `<span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.location)}</span><span>${escapeHtml(job.type)}</span>`;
+      document.getElementById('applicationJobId').value = job.id;
+      document.getElementById('applicationJobTitle').value = job.title;
+
+      if (job.requirements && job.requirements.trim()) {
+        const requirements = job.requirements.split('\n').filter(Boolean);
+        document.getElementById('jobRequirements').innerHTML = '<ul>' + requirements.map(item => '<li>' + escapeHtml(item.trim()) + '</li>').join('') + '</ul>';
+        document.getElementById('requirementsBlock').hidden = false;
+      }
+      loading.hidden = true;
+      content.hidden = false;
+      document.getElementById('submitApplication').disabled = false;
+    }
+
+    function escapeHtml(value) { const element = document.createElement('span'); element.textContent = value || ''; return element.innerHTML; }
+    loadApplication();
+  </script>
+</body>
+</html>

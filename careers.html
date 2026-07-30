@@ -41,7 +41,13 @@
 
   <section class="section" style="background:var(--off-white);">
     <div class="container">
-      <div class="coming-soon-card reveal">
+      <div class="jobs-section__heading reveal">
+        <div><div class="tag">Current opportunities</div><h2>Find your next role</h2></div>
+        <p>Explore open positions and apply directly to join the Atlara team.</p>
+      </div>
+      <div id="jobsLoading" class="jobs-loading" aria-live="polite">Loading current openings…</div>
+      <div id="jobsGrid" class="jobs-grid" hidden></div>
+      <div id="noJobs" class="coming-soon-card reveal" hidden>
         <div class="coming-soon-icon">
           <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=200&q=80&fit=crop" alt="Team" loading="lazy"/>
         </div>
@@ -130,6 +136,48 @@
       
     </div>
   </footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    const jobsLoading = document.getElementById('jobsLoading');
+    const jobsGrid = document.getElementById('jobsGrid');
+    const noJobs = document.getElementById('noJobs');
+
+    function escapeHtml(value) {
+      const element = document.createElement('span');
+      element.textContent = value || '';
+      return element.innerHTML;
+    }
+
+    async function showOpenJobs() {
+      const { data: jobs, error } = await window.sb
+        .from('jobs')
+        .select('id, title, department, location, type, description')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
+
+      jobsLoading.hidden = true;
+      if (error || !jobs || jobs.length === 0) {
+        noJobs.hidden = false;
+        return;
+      }
+
+      jobsGrid.innerHTML = jobs.map(job => {
+        const jobDescription = job.description || '';
+        const description = jobDescription.length > 180 ? jobDescription.slice(0, 180).trim() + '…' : jobDescription;
+        return `<article class="job-card reveal visible">
+          <div class="job-card__meta"><span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.type)}</span></div>
+          <h3>${escapeHtml(job.title)}</h3>
+          <p class="job-card__location">⌖ ${escapeHtml(job.location)}</p>
+          <p class="job-card__description">${escapeHtml(description)}</p>
+          <a class="btn btn-primary" href="apply.html?job=${encodeURIComponent(job.id)}">Apply for this role ↗</a>
+        </article>`;
+      }).join('');
+      jobsGrid.hidden = false;
+    }
+
+    showOpenJobs();
+  </script>
 </body>
 </html>

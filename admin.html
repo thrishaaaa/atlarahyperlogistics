@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Careers Admin — Atlara</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg"/>
+</head>
+<body class="admin-page">
+  <main class="admin-shell">
+    <a href="index.html" class="admin-brand"><img src="assets/logo.jpg" alt="Atlara Hyperlogistics"/> <span>Careers Admin</span></a>
+
+    <section id="loginView" class="admin-auth-card">
+      <div class="tag">Secure access</div>
+      <h1>Manage job openings</h1>
+      <p>Sign in with the administrator account to publish and manage career opportunities.</p>
+      <form id="loginForm">
+        <div class="form-group"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" required/></div>
+        <div class="form-group"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required/></div>
+        <button class="btn btn-primary form-submit" type="submit">Sign in ↗</button>
+        <p id="loginMessage" class="admin-message" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" class="admin-dashboard" hidden>
+      <div class="admin-topbar">
+        <div><div class="tag">Careers</div><h1>Job openings</h1><p>Publish changes instantly—no website redeploy needed.</p></div>
+        <button id="logoutButton" class="btn btn-outline" type="button">Sign out</button>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-panel">
+          <h2 id="formHeading">Add a job opening</h2>
+          <form id="jobForm">
+            <input id="jobId" type="hidden"/>
+            <div class="form-group"><label for="title">Job title *</label><input id="title" type="text" required maxlength="150"/></div>
+            <div class="form-row">
+              <div class="form-group"><label for="department">Department *</label><input id="department" type="text" required maxlength="100"/></div>
+              <div class="form-group"><label for="location">Location *</label><input id="location" type="text" required maxlength="100"/></div>
+            </div>
+            <div class="form-group"><label for="type">Employment type *</label><select id="type" required><option value="">Select type</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></div>
+            <div class="form-group"><label for="description">Role description *</label><textarea id="description" required maxlength="5000"></textarea></div>
+            <div class="form-group"><label for="requirements">Requirements</label><textarea id="requirements" maxlength="5000" placeholder="Add one requirement per line"></textarea></div>
+            <div class="form-group"><label for="status">Status *</label><select id="status" required><option value="open">Open — visible on careers page</option><option value="closed">Closed — hidden from public page</option></select></div>
+            <div class="admin-form-actions"><button id="saveButton" class="btn btn-primary" type="submit">Publish opening ↗</button><button id="cancelButton" class="btn btn-outline" type="button" hidden>Cancel edit</button></div>
+            <p id="jobMessage" class="admin-message" role="alert"></p>
+          </form>
+        </section>
+
+        <section class="admin-panel admin-list-panel">
+          <div class="admin-list-heading"><h2>All postings</h2><button id="refreshButton" class="text-button" type="button">Refresh</button></div>
+          <p id="jobsMessage" class="admin-message" role="status">Loading postings…</p>
+          <div id="jobsList" class="admin-jobs-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    const loginView = document.getElementById('loginView');
+    const dashboardView = document.getElementById('dashboardView');
+    const loginMessage = document.getElementById('loginMessage');
+    const jobMessage = document.getElementById('jobMessage');
+    const jobsMessage = document.getElementById('jobsMessage');
+    const jobsList = document.getElementById('jobsList');
+    const jobForm = document.getElementById('jobForm');
+    const formHeading = document.getElementById('formHeading');
+    const saveButton = document.getElementById('saveButton');
+    const cancelButton = document.getElementById('cancelButton');
+    let jobs = [];
+
+    function safeText(value) { const node = document.createElement('span'); node.textContent = value || ''; return node.innerHTML; }
+    function showDashboard() { loginView.hidden = true; dashboardView.hidden = false; loadJobs(); }
+    function resetForm() { jobForm.reset(); document.getElementById('jobId').value = ''; formHeading.textContent = 'Add a job opening'; saveButton.textContent = 'Publish opening ↗'; cancelButton.hidden = true; jobMessage.textContent = ''; }
+
+    async function loadJobs() {
+      jobsMessage.textContent = 'Loading postings…'; jobsList.innerHTML = '';
+      const { data, error } = await window.sb.from('jobs').select('*').order('created_at', { ascending: false });
+      if (error) { jobsMessage.textContent = 'Unable to load postings: ' + error.message; return; }
+      jobs = data || [];
+      if (!jobs.length) { jobsMessage.textContent = 'No job openings yet. Use the form to publish the first one.'; return; }
+      jobsMessage.textContent = '';
+      jobsList.innerHTML = jobs.map(job => `<article class="admin-job-card"><div><span class="job-status job-status--${safeText(job.status)}">${safeText(job.status)}</span><h3>${safeText(job.title)}</h3><p>${safeText(job.department)} · ${safeText(job.location)} · ${safeText(job.type)}</p></div><div class="admin-job-actions"><button class="text-button" type="button" data-edit="${safeText(job.id)}">Edit</button><button class="text-button text-button--danger" type="button" data-delete="${safeText(job.id)}">Delete</button></div></article>`).join('');
+    }
+
+    jobForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const id = document.getElementById('jobId').value;
+      const payload = {
+        title: document.getElementById('title').value.trim(), department: document.getElementById('department').value.trim(),
+        location: document.getElementById('location').value.trim(), type: document.getElementById('type').value,
+        description: document.getElementById('description').value.trim(), requirements: document.getElementById('requirements').value.trim(), status: document.getElementById('status').value
+      };
+      jobMessage.textContent = 'Saving…'; saveButton.disabled = true;
+      const request = id ? window.sb.from('jobs').update(payload).eq('id', id) : window.sb.from('jobs').insert(payload);
+      const { error } = await request;
+      saveButton.disabled = false;
+      if (error) { jobMessage.textContent = 'Could not save: ' + error.message; return; }
+      resetForm(); jobMessage.textContent = id ? 'Job posting updated.' : 'Job opening published.'; loadJobs();
+    });
+
+    jobsList.addEventListener('click', async event => {
+      const editId = event.target.dataset.edit, deleteId = event.target.dataset.delete;
+      if (editId) { const job = jobs.find(item => item.id === editId); if (!job) return; Object.entries(job).forEach(([key, value]) => { const input = document.getElementById(key); if (input) input.value = value || ''; }); document.getElementById('jobId').value = job.id; formHeading.textContent = 'Edit job opening'; saveButton.textContent = 'Save changes ↗'; cancelButton.hidden = false; jobMessage.textContent = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      if (deleteId && confirm('Delete this job posting permanently?')) { const { error } = await window.sb.from('jobs').delete().eq('id', deleteId); jobsMessage.textContent = error ? 'Could not delete: ' + error.message : 'Job posting deleted.'; loadJobs(); }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async event => { event.preventDefault(); loginMessage.textContent = 'Signing in…'; const { error } = await window.sb.auth.signInWithPassword({ email: document.getElementById('email').value.trim(), password: document.getElementById('password').value }); if (error) { loginMessage.textContent = error.message; return; } showDashboard(); });
+    document.getElementById('logoutButton').addEventListener('click', async () => { await window.sb.auth.signOut(); dashboardView.hidden = true; loginView.hidden = false; document.getElementById('loginForm').reset(); });
+    document.getElementById('refreshButton').addEventListener('click', loadJobs);
+    cancelButton.addEventListener('click', resetForm);
+    window.sb.auth.getSession().then(({ data: { session } }) => { if (session) showDashboard(); });
+  </script>
+</body>
+</html>
