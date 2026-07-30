@@ -153,7 +153,7 @@
     async function showOpenJobs() {
       const { data: jobs, error } = await window.sb
         .from('jobs')
-        .select('id, title, department, location, type, description')
+        .select('id, title, department, location, type, description, job_code')
         .eq('status', 'open')
         .order('created_at', { ascending: false });
 
@@ -166,8 +166,9 @@
       jobsGrid.innerHTML = jobs.map(job => {
         const jobDescription = job.description || '';
         const description = jobDescription.length > 180 ? jobDescription.slice(0, 180).trim() + '…' : jobDescription;
+        const idBadge = job.job_code ? `<span>ID: ${escapeHtml(job.job_code)}</span>` : '';
         return `<article class="job-card reveal visible">
-          <div class="job-card__meta"><span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.type)}</span></div>
+          <div class="job-card__meta">${idBadge}<span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.type)}</span></div>
           <h3>${escapeHtml(job.title)}</h3>
           <p class="job-card__location">⌖ ${escapeHtml(job.location)}</p>
           <p class="job-card__description">${escapeHtml(description)}</p>

@@ -33,11 +33,9 @@
         <section class="contact-form application-form reveal visible">
           <h2>Apply for this role</h2>
           <p>Complete the form below and attach your current resume.</p>
-          <form name="job-application" method="POST" action="application-received.html" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data">
-            <input type="hidden" name="form-name" value="job-application"/>
-            <p class="visually-hidden"><label>Do not fill this out: <input name="bot-field"/></label></p>
-            <input id="applicationJobId" type="hidden" name="job_id"/>
-            <input id="applicationJobTitle" type="hidden" name="job_title"/>
+          <form id="applicationForm">
+            <input id="applicationJobId" type="hidden"/>
+            <input id="applicationJobTitle" type="hidden"/>
             <div class="form-row">
               <div class="form-group"><label for="firstName">First name *</label><input id="firstName" name="first_name" type="text" autocomplete="given-name" required/></div>
               <div class="form-group"><label for="lastName">Last name *</label><input id="lastName" name="last_name" type="text" autocomplete="family-name" required/></div>
@@ -48,9 +46,10 @@
               <div class="form-group"><label for="age">Age *</label><input id="age" name="age" type="number" min="16" max="100" required/></div>
               <div class="form-group"><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option><option value="prefer-not-to-say">Prefer not to say</option></select></div>
             </div>
-            <div class="form-group"><label for="resume">Resume (PDF, DOC or DOCX) *</label><input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required/></div>
+            <div class="form-group"><label for="resume">Resume (PDF, DOC or DOCX, max 10MB) *</label><input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required/></div>
             <div class="form-group"><label for="message">Additional note</label><textarea id="message" name="message" placeholder="Tell us briefly why you would be a great fit (optional)"></textarea></div>
             <button id="submitApplication" class="btn btn-primary form-submit" type="submit" disabled>Submit application ↗</button>
+            <p id="applicationMessage" class="admin-message" role="alert"></p>
           </form>
         </section>
       </div>
@@ -70,9 +69,11 @@
     const loading = document.getElementById('applicationLoading');
     const content = document.getElementById('applicationContent');
     const unavailable = document.getElementById('jobUnavailable');
+    let currentJob = null;
 
     function setText(id, value) { document.getElementById(id).textContent = value || ''; }
     function showUnavailable() { loading.hidden = true; unavailable.hidden = false; }
+    function escapeHtml(value) { const element = document.createElement('span'); element.textContent = value || ''; return element.innerHTML; }
 
     async function loadApplication() {
       const jobId = new URLSearchParams(window.location.search).get('job');
@@ -80,16 +81,19 @@
 
       const { data: job, error } = await window.sb
         .from('jobs')
-        .select('id, title, department, location, type, description, requirements')
+        .select('id, title, department, location, type, description, requirements, job_code')
         .eq('id', jobId)
         .eq('status', 'open')
         .maybeSingle();
 
       if (error || !job) { showUnavailable(); return; }
+      currentJob = job;
       document.title = 'Apply for ' + job.title + ' — Atlara';
       setText('jobTitle', job.title);
       setText('jobDescription', job.description);
-      document.getElementById('jobMeta').innerHTML = `<span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.location)}</span><span>${escapeHtml(job.type)}</span>`;
+      const metaBits = [job.department, job.location, job.type].filter(Boolean).map(v => `<span>${escapeHtml(v)}</span>`);
+      if (job.job_code) metaBits.unshift(`<span>ID: ${escapeHtml(job.job_code)}</span>`);
+      document.getElementById('jobMeta').innerHTML = metaBits.join('');
       document.getElementById('applicationJobId').value = job.id;
       document.getElementById('applicationJobTitle').value = job.title;
 
@@ -103,7 +107,53 @@
       document.getElementById('submitApplication').disabled = false;
     }
 
-    function escapeHtml(value) { const element = document.createElement('span'); element.textContent = value || ''; return element.innerHTML; }
+    document.getElementById('applicationForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!currentJob) return;
+
+      const submitBtn = document.getElementById('submitApplication');
+      const msg = document.getElementById('applicationMessage');
+      const resumeFile = document.getElementById('resume').files[0];
+
+      if (!resumeFile) { msg.textContent = 'Please attach your resume.'; return; }
+      if (resumeFile.size > 10 * 1024 * 1024) { msg.textContent = 'Resume must be under 10MB.'; return; }
+
+      submitBtn.disabled = true;
+      msg.textContent = 'Submitting your application…';
+
+      try {
+        const safeName = resumeFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const path = `${currentJob.id}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await window.sb.storage
+          .from('resumes')
+          .upload(path, resumeFile, { contentType: resumeFile.type || 'application/octet-stream' });
+        if (uploadError) throw uploadError;
+
+        const payload = {
+          job_id: currentJob.id,
+          job_title: currentJob.title,
+          first_name: document.getElementById('firstName').value.trim(),
+          last_name: document.getElementById('lastName').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          age: Number(document.getElementById('age').value) || null,
+          gender: document.getElementById('gender').value,
+          message: document.getElementById('message').value.trim(),
+          resume_path: path,
+          resume_filename: resumeFile.name
+        };
+
+        const { error: insertError } = await window.sb.from('applications').insert(payload);
+        if (insertError) throw insertError;
+
+        window.location.href = 'application-received.html';
+      } catch (err) {
+        msg.textContent = 'Something went wrong: ' + (err.message || 'please try again.');
+        submitBtn.disabled = false;
+      }
+    });
+
     loadApplication();
   </script>
 </body>
