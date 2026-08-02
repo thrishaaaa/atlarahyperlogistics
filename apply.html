@@ -128,7 +128,9 @@
         const { error: uploadError } = await window.sb.storage
           .from('resumes')
           .upload(path, resumeFile, { contentType: resumeFile.type || 'application/octet-stream' });
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          throw new Error('Resume upload failed: ' + (uploadError.message || 'please try again.'));
+        }
 
         const payload = {
           job_id: currentJob.id,
@@ -145,7 +147,9 @@
         };
 
         const { error: insertError } = await window.sb.from('applications').insert(payload);
-        if (insertError) throw insertError;
+        if (insertError) {
+          throw new Error('Application submission failed: ' + (insertError.message || 'please try again.'));
+        }
 
         window.location.href = 'application-received.html';
       } catch (err) {
