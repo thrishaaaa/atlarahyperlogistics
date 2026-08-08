@@ -94,7 +94,7 @@
       fallback.classList.add('show');
       setTimeout(dismissIntro, 2800);
     });
-    
+
     introVid.addEventListener('ended', dismissIntro);
     skipBtn.addEventListener('click', dismissIntro);
 
@@ -116,4 +116,84 @@
       });
     }
   }
+})();
+
+// ── Job share helper (used on careers.html & admin.html) ─────────────────────
+// Any element with data-share-job="<id>" data-share-title="<title>" becomes
+// a share trigger. Always points at the PUBLIC apply.html listing page —
+// never the admin page — regardless of which page the click came from.
+(function () {
+  function buildShareUrl(jobId) {
+    return `${window.location.origin}/apply.html?job=${encodeURIComponent(jobId)}`;
+  }
+
+  function closeAllSharePopovers() {
+    document.querySelectorAll('.share-popover').forEach(el => el.remove());
+  }
+
+  function openSharePopover(url, text, anchorEl) {
+    closeAllSharePopovers();
+    const encodedUrl = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(text);
+    const links = [
+      { label: 'WhatsApp', href: `https://wa.me/?text=${encodedText}%20${encodedUrl}` },
+      { label: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}` },
+      { label: 'X / Twitter', href: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}` },
+      { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
+      { label: 'Email', href: `mailto:?subject=${encodedText}&body=${encodedUrl}` },
+    ];
+
+    const popover = document.createElement('div');
+    popover.className = 'share-popover';
+    popover.innerHTML = `
+      <button type="button" class="share-popover__copy">🔗 Copy link</button>
+      ${links.map(l => `<a href="${l.href}" target="_blank" rel="noopener">${l.label}</a>`).join('')}
+      <button type="button" class="share-popover__close" aria-label="Close">✕</button>
+    `;
+    document.body.appendChild(popover);
+
+    const rect = anchorEl.getBoundingClientRect();
+    const popW = popover.offsetWidth || 220;
+    popover.style.top = `${window.scrollY + rect.bottom + 8}px`;
+    popover.style.left = `${Math.max(8, Math.min(window.scrollX + rect.left, window.scrollX + document.documentElement.clientWidth - popW - 12))}px`;
+
+    popover.querySelector('.share-popover__copy').addEventListener('click', async (e) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        e.target.textContent = '✓ Copied!';
+        setTimeout(() => { if (e.target) e.target.textContent = '🔗 Copy link'; }, 1600);
+      } catch {
+        window.prompt('Copy this link:', url);
+      }
+    });
+    popover.querySelector('.share-popover__close').addEventListener('click', closeAllSharePopovers);
+  }
+
+  async function shareJob(jobId, title, anchorEl) {
+    const url = buildShareUrl(jobId);
+    const text = `We're hiring: ${title} at Atlara Hyperlogistics`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: text, text, url });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // user cancelled, do nothing
+        // otherwise fall through to the popover
+      }
+    }
+    openSharePopover(url, text, anchorEl);
+  }
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-share-job]');
+    if (trigger) {
+      event.preventDefault();
+      event.stopPropagation();
+      shareJob(trigger.dataset.shareJob, trigger.dataset.shareTitle || 'this role', trigger);
+      return;
+    }
+    if (!event.target.closest('.share-popover')) closeAllSharePopovers();
+  });
+
+  window.AtlaraShare = { shareJob, buildShareUrl };
 })();

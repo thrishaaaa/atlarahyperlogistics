@@ -45,8 +45,18 @@
         <div><div class="tag">Current opportunities</div><h2>Find your next role</h2></div>
         <p>Explore open positions and apply directly to join the Atlara team.</p>
       </div>
+
+      <div id="jobsFilters" class="jobs-filters" hidden>
+        <input type="text" id="jobsSearch" placeholder="Search roles…" aria-label="Search roles"/>
+        <select id="filterDepartment" aria-label="Filter by department"><option value="all">All departments</option></select>
+        <select id="filterLocation" aria-label="Filter by location"><option value="all">All locations</option></select>
+        <select id="filterType" aria-label="Filter by employment type"><option value="all">All types</option></select>
+        <button type="button" id="clearFilters" class="jobs-filters__clear">Clear filters</button>
+      </div>
+
       <div id="jobsLoading" class="jobs-loading" aria-live="polite">Loading current openings…</div>
       <div id="jobsGrid" class="jobs-grid" hidden></div>
+      <div id="jobsEmptyFiltered" class="jobs-empty-filtered" hidden>No roles match your filters — try clearing them.</div>
       <div id="noJobs" class="coming-soon-card reveal" hidden>
         <div class="coming-soon-icon">
           <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=200&q=80&fit=crop" alt="Team" loading="lazy"/>
@@ -143,6 +153,13 @@
     const jobsLoading = document.getElementById('jobsLoading');
     const jobsGrid = document.getElementById('jobsGrid');
     const noJobs = document.getElementById('noJobs');
+    const jobsFilters = document.getElementById('jobsFilters');
+    const jobsSearch = document.getElementById('jobsSearch');
+    const filterDepartment = document.getElementById('filterDepartment');
+    const filterLocation = document.getElementById('filterLocation');
+    const filterType = document.getElementById('filterType');
+    const jobsEmptyFiltered = document.getElementById('jobsEmptyFiltered');
+    let allJobs = [];
 
     function escapeHtml(value) {
       const element = document.createElement('span');
@@ -150,11 +167,63 @@
       return element.innerHTML;
     }
 
+    function populateFilterOptions() {
+      const fill = (select, values) => {
+        const current = select.value;
+        select.innerHTML = select.options[0].outerHTML +
+          values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        if (values.includes(current)) select.value = current;
+      };
+      fill(filterDepartment, [...new Set(allJobs.map(j => j.department).filter(Boolean))].sort());
+      fill(filterLocation, [...new Set(allJobs.map(j => j.location).filter(Boolean))].sort());
+      fill(filterType, [...new Set(allJobs.map(j => j.type).filter(Boolean))].sort());
+    }
+
+    function jobCardHtml(job) {
+      const jobDescription = job.description || '';
+      const description = jobDescription.length > 180 ? jobDescription.slice(0, 180).trim() + '…' : jobDescription;
+      const idBadge = job.job_code ? `<span>ID: ${escapeHtml(job.job_code)}</span>` : '';
+      const closing = job.closing_date
+        ? `<p class="job-card__closing">Apply by ${new Date(job.closing_date + 'T00:00:00').toLocaleDateString()}</p>`
+        : '';
+      return `<article class="job-card reveal visible" data-department="${escapeHtml(job.department)}" data-location="${escapeHtml(job.location)}" data-type="${escapeHtml(job.type)}" data-title="${escapeHtml((job.title || '').toLowerCase())}">
+          <div class="job-card__meta">${idBadge}<span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.type)}</span></div>
+          <h3>${escapeHtml(job.title)}</h3>
+          <p class="job-card__location">⌖ ${escapeHtml(job.location)}</p>
+          ${closing}
+          <p class="job-card__description">${escapeHtml(description)}</p>
+          <div class="job-card__actions">
+            <a class="btn btn-primary" href="apply.html?job=${encodeURIComponent(job.id)}">Apply for this role ↗</a>
+            <button type="button" class="share-btn" data-share-job="${escapeHtml(job.id)}" data-share-title="${escapeHtml(job.title)}" title="Share this role">↗ Share</button>
+          </div>
+        </article>`;
+    }
+
+    function applyFilters() {
+      const search = jobsSearch.value.trim().toLowerCase();
+      const dept = filterDepartment.value;
+      const loc = filterLocation.value;
+      const type = filterType.value;
+      let visibleCount = 0;
+      document.querySelectorAll('#jobsGrid .job-card').forEach(card => {
+        const matches =
+          (dept === 'all' || card.dataset.department === dept) &&
+          (loc === 'all' || card.dataset.location === loc) &&
+          (type === 'all' || card.dataset.type === type) &&
+          (!search || card.dataset.title.includes(search));
+        card.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+      });
+      jobsEmptyFiltered.hidden = visibleCount !== 0;
+    }
+
     async function showOpenJobs() {
+      const todayIso = new Date().toISOString().slice(0, 10);
       const { data: jobs, error } = await window.sb
         .from('jobs')
-        .select('id, title, department, location, type, description, job_code')
+        .select('id, title, department, location, type, description, job_code, closing_date')
         .eq('status', 'open')
+        .or(`closing_date.is.null,closing_date.gte.${todayIso}`)
         .order('created_at', { ascending: false });
 
       jobsLoading.hidden = true;
@@ -163,20 +232,24 @@
         return;
       }
 
-      jobsGrid.innerHTML = jobs.map(job => {
-        const jobDescription = job.description || '';
-        const description = jobDescription.length > 180 ? jobDescription.slice(0, 180).trim() + '…' : jobDescription;
-        const idBadge = job.job_code ? `<span>ID: ${escapeHtml(job.job_code)}</span>` : '';
-        return `<article class="job-card reveal visible">
-          <div class="job-card__meta">${idBadge}<span>${escapeHtml(job.department)}</span><span>${escapeHtml(job.type)}</span></div>
-          <h3>${escapeHtml(job.title)}</h3>
-          <p class="job-card__location">⌖ ${escapeHtml(job.location)}</p>
-          <p class="job-card__description">${escapeHtml(description)}</p>
-          <a class="btn btn-primary" href="apply.html?job=${encodeURIComponent(job.id)}">Apply for this role ↗</a>
-        </article>`;
-      }).join('');
+      allJobs = jobs;
+      jobsGrid.innerHTML = jobs.map(jobCardHtml).join('');
       jobsGrid.hidden = false;
+      jobsFilters.hidden = jobs.length < 2;
+      populateFilterOptions();
     }
+
+    [jobsSearch, filterDepartment, filterLocation, filterType].forEach(el => {
+      el.addEventListener('input', applyFilters);
+      el.addEventListener('change', applyFilters);
+    });
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      jobsSearch.value = '';
+      filterDepartment.value = 'all';
+      filterLocation.value = 'all';
+      filterType.value = 'all';
+      applyFilters();
+    });
 
     showOpenJobs();
   </script>

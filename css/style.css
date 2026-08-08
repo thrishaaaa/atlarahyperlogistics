@@ -907,3 +907,69 @@ p  { color:var(--text-mid); }
   .applicant-card__status { width: 100%; }
   .applicants-panel__controls { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
+
+/* ═══════════════════════════════════════════════════
+   SHARE + FILTERS + DRAFT STATUS — new in this update
+   ═══════════════════════════════════════════════════ */
+
+/* ── Share button ── */
+.share-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700;
+  color:var(--ocean-teal); background:rgba(13,159,189,0.08);
+  border:1px solid rgba(13,159,189,0.22); border-radius:100px;
+  padding:9px 16px; cursor:pointer; transition:var(--transition); flex-shrink:0;
+}
+.share-btn:hover { background:var(--ocean-teal); color:var(--white); border-color:var(--ocean-teal); }
+.job-card__actions { display:flex; gap:10px; margin-top:auto; width:100%; }
+.job-card__actions .btn { flex:1; }
+
+/* ── Share popover (shared by careers.html + admin.html) ── */
+.share-popover {
+  position:absolute; z-index:2000; min-width:200px;
+  background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow-lg); padding:10px; display:flex; flex-direction:column; gap:2px;
+}
+.share-popover a, .share-popover button {
+  display:block; width:100%; text-align:left; padding:10px 12px; border-radius:8px;
+  font-family:'DM Sans',sans-serif; font-size:0.87rem; color:var(--text-dark);
+  background:transparent; border:none; cursor:pointer; transition:background 0.2s;
+}
+.share-popover a:hover, .share-popover button:hover { background:var(--off-white); color:var(--ocean-teal); }
+.share-popover__close {
+  position:absolute; top:6px; right:6px; width:24px; height:24px; padding:0 !important;
+  display:flex; align-items:center; justify-content:center; color:var(--text-light) !important; font-size:0.8rem;
+}
+
+/* ── Draft job status badge ── */
+.job-status--draft { color:var(--accent-warm); background:rgba(240,165,0,0.1); }
+
+/* ── Careers page filters bar ── */
+.jobs-filters { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:32px; align-items:center; }
+.jobs-filters input[type="text"], .jobs-filters select {
+  padding:11px 16px; border:1.5px solid var(--border); border-radius:10px;
+  font-family:'DM Sans',sans-serif; font-size:0.88rem; color:var(--text-dark);
+  background:var(--white); outline:none; transition:var(--transition);
+}
+.jobs-filters select {
+  appearance:none; padding-right:38px; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='10' viewBox='0 0 16 10'%3E%3Cpath d='m1 1 7 7 7-7' fill='none' stroke='%230d9fbd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; background-size:12px 8px;
+}
+.jobs-filters input[type="text"]:focus, .jobs-filters select:focus {
+  border-color:var(--ocean-teal); box-shadow:0 0 0 4px rgba(13,159,189,0.1);
+}
+.jobs-filters input[type="text"] { flex:1 1 220px; min-width:180px; }
+.jobs-filters__clear {
+  border:none; background:none; color:var(--ocean-teal); font-family:'Syne',sans-serif;
+  font-size:0.8rem; font-weight:700; cursor:pointer; padding:11px 6px;
+}
+.jobs-empty-filtered { text-align:center; color:var(--text-light); padding:50px 20px; font-size:1rem; }
+
+/* ── Closing date labels ── */
+.job-card__closing { font-size:0.78rem; color:var(--accent-warm); font-weight:600; margin-bottom:10px; }
+
+@media (max-width:700px) {
+  .jobs-filters { flex-direction:column; align-items:stretch; }
+  .jobs-filters input[type="text"], .jobs-filters select { width:100%; }
+}

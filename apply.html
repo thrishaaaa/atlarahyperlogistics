@@ -81,18 +81,29 @@
 
       const { data: job, error } = await window.sb
         .from('jobs')
-        .select('id, title, department, location, type, description, requirements, job_code')
+        .select('id, title, department, location, type, description, requirements, job_code, closing_date')
         .eq('id', jobId)
         .eq('status', 'open')
         .maybeSingle();
 
       if (error || !job) { showUnavailable(); return; }
+
+      // Respect the closing/expiry date even though the job row is still "open" —
+      // an admin may set a future closing date without remembering to flip the
+      // status themselves once it passes.
+      if (job.closing_date) {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const closing = new Date(job.closing_date + 'T00:00:00');
+        if (closing < today) { showUnavailable(); return; }
+      }
+
       currentJob = job;
       document.title = 'Apply for ' + job.title + ' — Atlara';
       setText('jobTitle', job.title);
       setText('jobDescription', job.description);
       const metaBits = [job.department, job.location, job.type].filter(Boolean).map(v => `<span>${escapeHtml(v)}</span>`);
       if (job.job_code) metaBits.unshift(`<span>ID: ${escapeHtml(job.job_code)}</span>`);
+      if (job.closing_date) metaBits.push(`<span>Apply by ${escapeHtml(new Date(job.closing_date + 'T00:00:00').toLocaleDateString())}</span>`);
       document.getElementById('jobMeta').innerHTML = metaBits.join('');
       document.getElementById('applicationJobId').value = job.id;
       document.getElementById('applicationJobTitle').value = job.title;

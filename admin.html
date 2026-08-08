@@ -41,10 +41,13 @@
               <div class="form-group"><label for="department">Department *</label><input id="department" type="text" required maxlength="100"/></div>
               <div class="form-group"><label for="location">Location *</label><input id="location" type="text" required maxlength="100"/></div>
             </div>
-            <div class="form-group"><label for="type">Employment type *</label><select id="type" required><option value="">Select type</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label for="type">Employment type *</label><select id="type" required><option value="">Select type</option><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select></div>
+              <div class="form-group"><label for="closingDate">Applications close (optional)</label><input id="closingDate" type="date"/></div>
+            </div>
             <div class="form-group"><label for="description">Role description *</label><textarea id="description" required maxlength="5000"></textarea></div>
             <div class="form-group"><label for="requirements">Requirements</label><textarea id="requirements" maxlength="5000" placeholder="Add one requirement per line"></textarea></div>
-            <div class="form-group"><label for="status">Status *</label><select id="status" required><option value="open">Open — visible on careers page</option><option value="closed">Closed — hidden from public page</option></select></div>
+            <div class="form-group"><label for="status">Status *</label><select id="status" required><option value="draft">Draft — hidden from public page</option><option value="open">Open — visible on careers page</option><option value="closed">Closed — hidden from public page</option></select></div>
             <div class="admin-form-actions"><button id="saveButton" class="btn btn-primary" type="submit">Publish opening ↗</button><button id="cancelButton" class="btn btn-outline" type="button" hidden>Cancel edit</button></div>
             <p id="jobMessage" class="admin-message" role="alert"></p>
           </form>
@@ -73,6 +76,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/main.js"></script>
   <script>
     const loginView = document.getElementById('loginView');
     const dashboardView = document.getElementById('dashboardView');
@@ -105,7 +109,15 @@
       jobs = data || [];
       if (!jobs.length) { jobsMessage.textContent = 'No job openings yet. Use the form to publish the first one.'; return; }
       jobsMessage.textContent = '';
-      jobsList.innerHTML = jobs.map(job => `<article class="admin-job-card"><div><span class="job-status job-status--${safeText(job.status)}">${safeText(job.status)}</span>${job.job_code ? `<span class="job-status" style="margin-left:6px;background:rgba(13,159,189,.08);color:var(--ocean-teal);">ID: ${safeText(job.job_code)}</span>` : ''}<h3>${safeText(job.title)}</h3><p>${safeText(job.department)} · ${safeText(job.location)} · ${safeText(job.type)}</p></div><div class="admin-job-actions"><button class="text-button" type="button" data-edit="${safeText(job.id)}">Edit</button><button class="text-button text-button--danger" type="button" data-delete="${safeText(job.id)}">Delete</button></div></article>`).join('');
+      jobsList.innerHTML = jobs.map(job => {
+        const closingLine = job.closing_date
+          ? `<p style="font-size:.8rem;color:var(--accent-warm);margin-top:4px;">Closes ${new Date(job.closing_date + 'T00:00:00').toLocaleDateString()}</p>`
+          : '';
+        const shareButton = job.status === 'open'
+          ? `<button class="text-button" type="button" data-share-job="${safeText(job.id)}" data-share-title="${safeText(job.title)}">Share</button>`
+          : '';
+        return `<article class="admin-job-card"><div><span class="job-status job-status--${safeText(job.status)}">${safeText(job.status)}</span>${job.job_code ? `<span class="job-status" style="margin-left:6px;background:rgba(13,159,189,.08);color:var(--ocean-teal);">ID: ${safeText(job.job_code)}</span>` : ''}<h3>${safeText(job.title)}</h3><p>${safeText(job.department)} · ${safeText(job.location)} · ${safeText(job.type)}</p>${closingLine}</div><div class="admin-job-actions">${shareButton}<button class="text-button" type="button" data-edit="${safeText(job.id)}">Edit</button><button class="text-button text-button--danger" type="button" data-delete="${safeText(job.id)}">Delete</button></div></article>`;
+      }).join('');
       populateJobFilter();
     }
 
@@ -123,6 +135,7 @@
         job_code: document.getElementById('jobCode').value.trim() || null,
         title: document.getElementById('title').value.trim(), department: document.getElementById('department').value.trim(),
         location: document.getElementById('location').value.trim(), type: document.getElementById('type').value,
+        closing_date: document.getElementById('closingDate').value || null,
         description: document.getElementById('description').value.trim(), requirements: document.getElementById('requirements').value.trim(), status: document.getElementById('status').value
       };
       jobMessage.textContent = 'Saving…'; saveButton.disabled = true;
@@ -135,7 +148,15 @@
 
     jobsList.addEventListener('click', async event => {
       const editId = event.target.dataset.edit, deleteId = event.target.dataset.delete;
-      if (editId) { const job = jobs.find(item => item.id === editId); if (!job) return; Object.entries(job).forEach(([key, value]) => { const fieldId = key === 'job_code' ? 'jobCode' : key; const input = document.getElementById(fieldId); if (input) input.value = value || ''; }); document.getElementById('jobId').value = job.id; formHeading.textContent = 'Edit job opening'; saveButton.textContent = 'Save changes ↗'; cancelButton.hidden = false; jobMessage.textContent = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      if (editId) {
+        const job = jobs.find(item => item.id === editId); if (!job) return;
+        Object.entries(job).forEach(([key, value]) => {
+          const fieldId = key === 'job_code' ? 'jobCode' : key === 'closing_date' ? 'closingDate' : key;
+          const input = document.getElementById(fieldId);
+          if (input) input.value = value || '';
+        });
+        document.getElementById('jobId').value = job.id; formHeading.textContent = 'Edit job opening'; saveButton.textContent = 'Save changes ↗'; cancelButton.hidden = false; jobMessage.textContent = ''; window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       if (deleteId && confirm('Delete this job posting permanently? Its applicants will also be removed.')) { const { error } = await window.sb.from('jobs').delete().eq('id', deleteId); jobsMessage.textContent = error ? 'Could not delete: ' + error.message : 'Job posting deleted.'; loadJobs(); loadApplicants(); }
     });
 
